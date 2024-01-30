@@ -1,0 +1,9 @@
+![https://github.com/openai/gpt-3/issues/1#issuecomment-636008427](gpt3-locally.png)
+![https://appian.com/blog/acp/process-automation/generative-ai-vs-large-language-models.html](gllm.png)
+
+
+# Demo
+
+Show how to install on laptop (pre-download container)
+
+

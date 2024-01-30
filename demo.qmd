@@ -1,0 +1,305 @@
+---
+title: "(r)ollama demo"
+author: "JBGruber"
+format: html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE}
+rlang::check_installed(c("rollama",
+                         "tidyverse"))
+library(rollama)
+library(tidyverse)
+```
+
+Is Ollama running?
+
+```{r}
+ping_ollama()
+```
+
+Pull a model:
+
+```{r}
+pull_model("orca-mini")
+```
+
+```{r}
+query("Who are you?", model = "orca-mini") # this one forgets the conversation
+chat("What is 1 + 1?", model = "orca-mini")  # this one retains the conversation
+chat("Now take the result and add 1. What is it?", model = "orca-mini")
+new_chat()
+```
+
+# configure
+
+```{r}
+# use desktop PC instead
+options(rollama_server = "http://192.168.2.29:11434")
+```
+
+```{r}
+query("why is the sky blue?")
+```
+
+```{r}
+options(rollama_config = "You make answers understandable to a 5 year old")
+```
+
+```{r}
+query("why is the sky blue?")
+```
+
+```{r}
+options(rollama_model = "mixtral")
+```
+
+```{r}
+query("why is the sky blue?")
+```
+
+```{r}
+options(rollama_config = NULL)
+```
+
+
+```{r}
+query("why is the sky blue?",
+      model_params = list(
+        num_keep = 5,
+        seed = 42,
+        num_predict = 100,
+        top_k = 20,
+        top_p = 0.9,
+        tfs_z = 0.5,
+        typical_p = 0.7,
+        repeat_last_n = 33,
+        temperature = 0.2,
+        repeat_penalty = 1.2,
+        presence_penalty = 1.5,
+        frequency_penalty = 1.0,
+        mirostat = 1,
+        mirostat_tau = 0.8,
+        mirostat_eta = 0.6,
+        penalize_newline = TRUE,
+        stop = c("\n", "user:"),
+        numa = FALSE,
+        num_ctx = 1024,
+        num_batch = 2,
+        num_gqa = 1,
+        num_gpu = 1,
+        main_gpu = 0,
+        low_vram = FALSE,
+        f16_kv = TRUE,
+        vocab_only = FALSE,
+        use_mmap = TRUE,
+        use_mlock = FALSE,
+        embedding_only = FALSE,
+        rope_frequency_base = 1.1,
+        rope_frequency_scale = 0.8,
+        num_thread = 8
+      ))
+```
+
+# models
+
+```{r}
+list_models()
+```
+
+```{r}
+model_info <- show_model("mixtral")
+View(model_info)
+```
+
+```{r}
+model_info <- show_model("hub/based-dolphin-mixtral")
+model_info$modelfile |> 
+  cli::bg_br_green() |> 
+  cli::cat_line()
+```
+
+```{r}
+modelfile <- system.file("extdata", "modelfile.txt", package = "rollama")
+readLines(modelfile) |> 
+  cli::bg_br_green() |> 
+  cli::cat_line()
+```
+
+```{r}
+create_model("mario", modelfile = modelfile)
+```
+
+```{r}
+chat("who are you?", model = "mario")
+```
+
+
+# helping with programming
+
+```{r}
+pull_model("starcoder")
+rlang::global_entrace()
+query("What is an R function?", model = "starcoder")
+query("Can you help me with the function aes() from ggplot2?")
+
+mean[1]
+rrr <- rlang::last_error()
+glue::glue("explain why this R code does not work:",
+                     "\n{rlang::expr_deparse(rrr[['call']])}",
+                     "\n{rlang::expr_deparse(rrr[['message']])}") |> 
+  query()
+```
+
+# annotation
+
+(see <https://jbgruber.github.io/rollama/articles/annotation.html>)
+
+```{r}
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "{'Category':'Negative','Confidence':'100%','Important':'terrible'}",
+  "user", "text: the service is great\ncategories: positive, neutral, negative"
+)
+answer <- query(q)
+```
+
+```{r}
+# Create an example dataframe with 5 movie reviews
+movie_reviews <- tibble(
+  review_id = 1:5,
+  review = c("A stunning visual spectacle with a gripping storyline.",
+             "The plot was predictable, but the acting was superb.",
+             "An overrated film with underwhelming performances.",
+             "A beautiful tale of love and adventure, beautifully shot.",
+             "The movie lacked depth, but the special effects were incredible.")
+)
+# Print the initial dataframe
+movie_reviews
+```
+
+```{r}
+movie_reviews_annotated <- movie_reviews |> 
+  mutate(annotation = map_chr(review, function(r) {
+    q <- tribble(
+      ~role,    ~content,
+      "system", "You assign texts into categories. Answer with just the correct category.",
+      "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+      "assistant", "{'Category':'Negative','Confidence':'100%','Important':'terrible'}",
+      "user", glue::glue("text: {r}")
+    )
+    query(q) |> 
+      pluck("message", "content")
+  }))
+
+movie_reviews_annotated
+```
+
+
+# image annotation
+
+(see <https://jbgruber.github.io/rollama/articles/image-annotation.html>)
+
+```{r}
+pull_model("llava")
+```
+
+![](https://raw.githubusercontent.com/JBGruber/rollama/master/man/figures/logo.png)
+
+```{r}
+query("Excitedly desscribe this logo", 
+      model = "llava",
+      images = "https://raw.githubusercontent.com/JBGruber/rollama/master/man/figures/logo.png")
+```
+
+![](media/JBGruber.jpg)
+
+```{r}
+query("Who do you see on this picture: a man, a woman, a student or a professor. Assign probabilities to each category", 
+      model = "llava",
+      images = "media/JBGruber.jpg")
+```
+
+
+# text embedding
+
+(see <https://jbgruber.github.io/rollama/articles/text-embedding.html>)
+
+```{r}
+reviews_df <- read_csv("https://raw.githubusercontent.com/AFAgarap/ecommerce-reviews-analysis/master/Womens%20Clothing%20E-Commerce%20Reviews.csv",
+                       show_col_types = FALSE)
+```
+
+```{r}
+if (file.exists("data/reviews_embeddings.rds")) {
+  reviews_embeddings <- readRDS("data/reviews_embeddings.rds")
+} else {
+  # takes a ~ 5min
+  reviews_embeddings <- reviews_df |>
+    slice_head(n = 250) |> 
+    rename(id = ...1) |>
+    mutate(rating = factor(Rating == 5, c(TRUE, FALSE), c("5", "<5"))) |> 
+    mutate(full_text = paste0(ifelse(is.na(Title), "", Title), `Review Text`)) |> 
+    mutate(embeddings = embed_text(text = full_text)) |> 
+    select(id, rating, embeddings) |> 
+    unnest_wider(embeddings)
+  saveRDS(reviews_embeddings, "data/reviews_embeddings.rds")
+}
+```
+
+```{r}
+library(tidymodels)
+# split data into training an test set (for validation)
+set.seed(1)
+reviews_split <- initial_split(reviews_embeddings)
+
+reviews_train <- training(reviews_split)
+
+# set up the model we want to use 
+lasso_spec <- logistic_reg(penalty = tune(), mixture = 1) |>
+  set_engine("glmnet")
+
+# we specify that we want to do some hyperparameter tuning and bootstrapping
+param_grid <- grid_regular(penalty(), levels = 50)
+reviews_boot <- bootstraps(reviews_train, times = 10)
+
+# and we define the model. Here we use the embeddings to predict the rating
+rec_spec <- recipe(rating ~ ., data = select(reviews_train, -id))
+
+# bringing this together in a workflow
+wf_fh <- workflow() |>
+  add_recipe(rec_spec) |>
+  add_model(lasso_spec)
+
+# now we do the tuning
+set.seed(42)
+lasso_grid <- tune_grid(
+  wf_fh,
+  resamples = reviews_boot,
+  grid = param_grid
+) 
+
+# select the best model
+wf_fh_final <- wf_fh |>
+  finalize_workflow(parameters = select_best(lasso_grid, "roc_auc"))
+
+# and train a new model + predict the classes for the test set
+final_res <- last_fit(wf_fh_final, reviews_split)
+
+# we extract these predictions
+final_pred <- final_res |>
+  collect_predictions()
+
+# and evaluate them with a few standard metrics
+my_metrics <- metric_set(accuracy, precision, recall, f_meas)
+
+my_metrics(final_pred, truth = rating, estimate = .pred_class)
+
+# and the ROC curve
+final_pred |> 
+  roc_curve(rating, .pred_5) |> 
+  autoplot()
+```

@@ -1,0 +1,574 @@
+---
+title: "O<span style='color:red;'>ll</span>a<span style='color:red;'>m</span>a"
+subtitle: "*So simple school kids can use it!*"
+author: "Johannes B. Gruber"
+format: 
+  revealjs:
+    embed-resources: true
+    smaller: true
+    scrollable: true
+bibliography: references.bib
+title-slide-attributes:
+  data-background-image: media/ollama-r.png
+  data-background-size: "350px" 
+  data-background-position: bottom -15px right -15px
+---
+
+# Contents
+
+1. Motivation
+1. What is Ollama
+1. Why use generative Larger Language Models?
+1. Why use models locally?
+1. Usage Examples
+1. Demo
+1. Issues
+
+# Late 2022
+
+```{r setup}
+#| include: false
+library(tidyverse)
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
+```
+
+Question: How can you run generative large language models (gLLM; aka GPT, aka ChatGPT-like, aka GPT-like, aka generative AI, AI text bots) locally?
+
+[![](media/gpt3-locally.png)](https://github.com/openai/gpt-3/issues/1#issuecomment-636008427)
+
+# Late 2023
+
+Question: How can you run generative large language models (gLLM; aka GPT, aka ChatGPT-like, aka GPT-like, aka generative AI, AI text bots) locally?
+
+[![](media/so-easy.png)](https://www.reddit.com/r/LocalLLaMA/comments/177tryq/ollama_is_making_entry_into_the_llm_world_so/)
+![](media/raspi.jpg){.absolute width=300 right=1 top=450}
+
+# What is Ollama?
+
+## Ollama: a tool/framework
+
+- Ollama is a tool for running large language models (LLMs) locally
+- It optimizes setup and configuration details, including GPU usage
+- Is easy to install and run
+- Easy to extend
+- MIT license (aka. open-source)!
+
+
+## Ollama models {.smaller .scrollable}
+
+- Ollama bundles model weights, configuration, and data into a single package, defined by a Modelfile
+- A curated model library is available at <https://ollama.ai/library>
+- Custom models can be up/downloaded from <https://ollamahub.com>
+- Huggingface models can be imported (Llama, Mistral, Falcon, RW and BigCode architecture supported atm)
+
+::: {style="font-size: 70%;"}
+| Model              | Parameters | Size  |
+| ------------------ | ---------- | ----- |
+| Llama 2            | 7B         | 3.8GB |
+| Mistral            | 7B         | 4.1GB |
+| Dolphin Phi        | 2.7B       | 1.6GB |
+| Phi-2              | 2.7B       | 1.7GB |
+| Neural Chat        | 7B         | 4.1GB |
+| Starling           | 7B         | 4.1GB |
+| Code Llama         | 7B         | 3.8GB |
+| Llama 2 Uncensored | 7B         | 3.8GB |
+| Llama 2 13B        | 13B        | 7.3GB |
+| Llama 2 70B        | 70B        | 39GB  |
+| Orca Mini          | 3B         | 1.9GB |
+| Vicuna             | 7B         | 3.8GB |
+| LLaVA              | 7B         | 4.5GB |
+:::
+
+# Why use gLLMs? 
+
+:::{.smaller}
+- cheaper to use 💸 (experts > research assistants > crowd workers > gLLMs)
+- more accurate 🧠 (experts > research assistants > gLLMs > crowd workers)
+- feasible to make large training set (for SML) or code entire corpus
+- multilingual^[but still need of validation!]
+- better at annotate complex categories 🤔 (human* > gLLM > LLM > SML)
+- can use contextual information (human* > gLLM > LLM > ❌ SML)
+- easier to use: plain English prompting
+
+[e.g., @GilardiChatGPT2023;@Heseltine_Hohenberg_2023;@Zhong_ChatGPT_2023;@Törnberg_2023]
+:::
+
+# Why is local important?
+## Why should we run gLLMs locally?
+
+- No guardrails 🤨
+
+:::: {.columns}
+
+::: {.column width="50%" .absolute top=200 left=40}
+![](media/crack-gpt4.png)
+:::
+
+::: {.column width="50%" .absolute top=200 right=40 .fragment .fade-in}
+![](media/crack-dolphin-censored.png)
+:::
+
+::::
+
+![](media/surprised.png){.absolute width="150px" top=100 right=150 .fragment}
+
+## Why should we run gLLMs locally?
+
+- No guardrails 🤨
+
+:::: {.columns}
+
+::: {.column width="50%" .absolute top=200 left=40}
+![](media/crack-gpt4.png)
+:::
+
+::: {.column width="50%" .absolute top=200 right=40}
+![](media/crack-dolphin.png)
+:::
+
+::::
+
+![](media/surprised.png){.absolute width="150px" top=100 right=150}
+
+## Why should we run gLLMs locally?
+
+- privacy (nothing is uploaded anywhere)
+- cost (cheap and reliable pricing)
+- long-term reproducible
+- other ethical concerns (?)
+- transparency (?)
+
+[@weber2023evaluation; @Spirling_2023] 
+
+![](media/max.png){.absolute top=100 right=0 .fragment .fade-up}
+
+
+# Examples
+## Classification
+## Classification--Strategies
+
+::: {style="font-size: 50%;"}
+| Prompting Strategy | Example Structure |
+|--------------------|--------------------|
+| Zero-shot          | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| One-shot           | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| Few-shot           | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`. . . more examples`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| Chain-of-Thought   | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Text to classify) + reasoning question"},`<br>`{"role": "assistant", "content": "Reasoning"},`<br>`{"role": "user", "content": "Classification question"}` |
+: Prompting strategies {.striped .hover tbl-colwidths="[15,85]"}
+:::
+
+See: @weber2023evaluation
+
+
+## Classification--Zero-shot {.scrollable}
+
+```{r}
+#| echo: true
+#| eval: false
+library(rollama)
+library(tibble)
+library(purrr)
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user",   "text: the pizza tastes terrible\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Negative
+```
+
+```{r}
+#| message: false
+#| include: false
+if (reticulate::virtualenv_exists("r-ollama")) {
+  reticulate::virtualenv_create("r-ollama", packages = c(
+    "ollama"
+  ))
+}
+reticulate::use_virtualenv("r-ollama")
+library(reticulate)
+```
+
+:::{.fragment}
+
+Also packages for Dart, Swift, C#, Java, PHP, Rust etc.
+
+Python:
+
+```{python}
+#| echo: true
+#| eval: false
+import ollama
+response = ollama.chat(model='llama2', messages=[
+  {
+    'role': 'system',
+    'content': 'You assign texts into categories. Answer with just the correct category.',
+  },
+  {
+    'role': 'user',
+    'content': 'text: the pizza tastes terrible\ncategories: positive, neutral, negative',
+  },
+])
+print(response['message']['content'])
+#> Category: Negative
+```
+
+JavaScript:
+
+```{js}
+#| echo: true
+#| eval: false
+import ollama from 'ollama'
+
+const response = await ollama.chat({
+  model: 'llama2',
+  messages: [
+    {
+      'role': 'system',
+      'content': 'You assign texts into categories. Answer with just the correct category.',
+    },
+    {
+      'role': 'user',
+      'content': 'text: the pizza tastes terrible\ncategories: positive, neutral, negative',
+    },
+  ],
+})
+console.log(response.message.content)
+#> Category: Negative
+```
+
+
+:::
+
+## Classification--One-shot {.scrollable}
+
+```{r}
+#| echo: true
+#| eval: false
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "Category: Negative",
+  "user", "text: the service is great\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Positive
+```
+
+:::{.fragment}
+
+Neat effect: change the output structure
+
+```{r}
+#| echo: true
+#| eval: false
+#| classes: .fragement .fade-in
+#| code-line-numbers: "5,11"
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "{'Category':'Negative','Confidence':'100%','Important':'terrible'}",
+  "user", "text: the service is great\ncategories: positive, neutral, negative"
+)
+answer <- query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> {'Category':'Positive','Confidence':'100%','Important':'great'}
+```
+
+:::
+
+## Classification--Few-shot
+
+
+```r
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "Category: Negative",
+  "user", "text: the service is great\ncategories: positive, neutral, negative",
+  "assistant", "Category: Positive",
+  "user", "text: I once came here with my wife\ncategories: positive, neutral, negative",
+  "assistant", "Category: Neutral",
+  "user", "text: I once ate pizza\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Neutral
+```
+
+## Classification--Chain-of-Thought {.scrollable}
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "4,11-12"
+q_thought <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. ",
+  "user",   "text: the pizza tastes terrible\nWhat sentiment (positive, neutral, or negative) would you assign? Provide some thoughts."
+)
+output_thought <- query(q_thought)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> 
+#> Based on the given text, I would assign it to the category of "negative
+#> sentiment." The use of the word "terrible" and the tone of the sentence convey
+#> a strong negative emotion towards the taste of the pizza. It's unlikely that
+#> someone would describe something as "terrible" if they were neutral or
+#> positive about it.
+```
+
+:::{.fragment}
+Now we can use these thoughts in classification
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "6"
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. ",
+  "user",   "text: the pizza tastes terrible\nWhat sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.",
+  "assistant", pluck(output_thought, "message", "content"),
+  "user",   "Now answer with just the correct category (positive, neutral, or negative)"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> 
+#> Negative
+```
+
+Full tutorial (inlcuding how to batch annotate): <https://jbgruber.github.io/rollama/articles/annotation.html>
+:::
+
+## Annotating news events  {.scrollable .smaller}
+
+::: {style="font-size: 60%;"}
+```{r}
+#| echo: false
+#| eval: true
+eval_set_df <- readRDS("data/eval_set_df.rds")
+eval_set_df_annotated <- rio::import("data/eval_set.csv")
+eval_set_df |> 
+  arrange(cluster) |> 
+  select(-name, -text) |> 
+  head(10) |> 
+  mutate(url = str_trunc(url, 24)) |> 
+  mutate(across(where(is.character), \(s) str_trunc(s, 120))) |> 
+  tinytable::tt(theme = "striped")
+```
+:::
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Annotation"
+#| code-line-numbers: "1-30|13|15|17|9,27,29"
+library(rollama)
+eval_set_df_annotated <- eval_set_df |> 
+  group_by(cluster) |> 
+  summarise(headlines = paste0(title, collapse = "\n\n"),
+            n = length(title)) |> 
+  filter(n > 1) |> 
+  mutate(label = NA)
+
+for (i in seq_len(nrow(eval_set_df_annotated))) {
+  
+  q <- tibble::tribble(
+    ~role,    ~content,
+    "system", "You assign short highly descriptive topic labels to a collection of headlines about the same topic. Answer with just the topic label.",
+    
+    "user", "headlines: \nGuns, ammunition, drugs and cash seized as part of investigation into organised crime in Tipperary as...\n\nFirearms, ammunition, machete, crack cocaine, heroin and cash seized in garda operation - Irish Mirror Online\n\nMan arrested after gardaí seize weapons and drugs in Clonmel",
+    
+    "assistant", "blow against organised crime",
+    
+    "user", "headlines: Taoiseach Leo Varadkar stung by Russian pranksters in hoax diplomatic call\n\nTaoiseach Leo Varadkar ‘pranked’ in phone call by pro-Kremlin Russian ‘comedians’ pretending to be African diplomats\n\nGovernment changes meetings protocol after Taoiseach duped in Russian hoax call\n\nTaoiseach Leo Varadkar ‘pranked’ in phone call by pro-Kremlin Russian ‘comedians’ pretending to be African diplomats\n\nLeo Varadkar falls victim to a prank by two Russian comedians\n\nLeo Varadkar insists he 'played along' with Russian pranksters on hoax video call - Irish Mirror Online\n\nLeo Varadkar falls victim to prank call by pair of Russian comedians - Irish Mirror Online\n\nTaoiseach was 'suspicious immediately' of prank by two Russian comedians but had to play along\n\nRed-faced Leo Varadkar makes urgent change to Government video call security protocols after embarrassing...\n\nI played along with prank call by Russian comedians – Taoiseach\n\nTaoiseach Leo Varadkar ‘played along’ with Russian comedians’ prank phone call after he became suspicious\n\nTaoiseach Leo Varadkar ‘played along’ with Russian comedians’ prank phone call after he became suspicious\n\nLeo Varadkar “pranked” by pro-Kremlin Russian “comedians”",
+    
+    "assistant", "Taoiseach pranked by Russians",
+    
+    "user", "headlines: Social media platform X back online after global outage\n\nSocial media platform X back online after global outage\n\nX is down: Thousands of users experiencing outages on platform formerly known as Twitter\n\nTwitter down: X website owned by Elon Musk suffers outages as thousands of users report problems...\n\nElon Musk’s X back online after global outage\n\nSocial media platform X back online after global outage · TheJournal.ie\n\nX users experiencing widespread outages",
+    
+    "assistant", "platform X outage",
+    
+    "user", glue::glue("headlines: {eval_set_df_annotated$headlines[i]}")
+  )
+  eval_set_df_annotated$label[i] <- query(q, screen = FALSE) |> pluck("message", "content")
+}
+```
+
+
+## Annotating news events  {.smaller}
+
+## Classification--Cluster 1: *Super League*
+
+![](media/cluster_1/1.png){.absolute width="45%"}
+![](media/cluster_1/2.png){.absolute width="45%" left="35%"}
+![](media/cluster_1/4.png){.absolute width="45%" top=300 left="50%"}
+![](media/cluster_1/3.png){.absolute width="45%" top=500}
+
+## Annotating news events  {.smaller}
+
+### Cluster 10: *Trump banned from Colorado ballot*
+
+![](media/cluster_10/1.png){.absolute width="45%"}
+![](media/cluster_10/2.png){.absolute width="45%" left="35%"}
+![](media/cluster_10/3.png){.absolute width="45%" top=500}
+![](media/cluster_10/4.png){.absolute width="45%" top=350 left="50%"}
+
+```{r}
+#| echo: false
+eval_set_df |> 
+  filter(cluster == 10) |> 
+  pull(url) |> 
+  sapply(browseURL)
+  # webshot2::webshot(file = "media/cluster_1/1.png")
+```
+
+## Annotating news events  {.smaller .scrollable}
+
+```{r}
+#| eval: true
+#| echo: false
+eval_set_df_annotated |> 
+  slice(1:30) |> 
+  mutate(across(where(is.character), \(s) str_trunc(s, 50))) |> 
+  mutate(good = str_replace(good, "^v$", cli::symbol$tick)) |> 
+  tinytable::tt(theme = "striped") |> 
+  tinytable::style_tt(fontsize = 0.7) |> 
+  tinytable::style_tt(i = which(eval_set_df_annotated$good == "v"), j = 5, background = "#D2D9A6") |> 
+  tinytable::style_tt(i = which(eval_set_df_annotated$good != "v"), j = 5, background = "#C40E19")
+```
+
+## Text embedding
+
+```r
+embed_text(text = reviews$full_text[1:3])
+#> ✔ embedded 3 texts [4s] 
+#> # A tibble: 3 × 4,096
+#>   dim_1  dim_2 dim_3  dim_4 dim_5  dim_6  dim_7  dim_8 dim_9 dim_10
+#>   <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl>  <dbl>  <dbl> <dbl>  <dbl>
+#> 1  1.85 -1.71   1.47  0.478 -1.75  0.771  3.01   0.961 1.65   0.569
+#> 2  1.14 -3.61   2.10 -0.385 -4.11 -3.09   0.990 -1.06  2.55   1.84 
+#> 3 -3.35  0.172 -3.49 -0.569 -3.14  1.25  -0.102  1.15  0.575 -2.33 
+#> # ℹ 4,086 more variables: dim_11 <dbl>, dim_12 <dbl>,
+#> #   dim_13 <dbl>, dim_14 <dbl>, dim_15 <dbl>, dim_16 <dbl>,
+#> #   dim_17 <dbl>, dim_18 <dbl>, dim_19 <dbl>, dim_20 <dbl>,
+#> #   dim_21 <dbl>, dim_22 <dbl>, dim_23 <dbl>, dim_24 <dbl>,
+#> #   dim_25 <dbl>, dim_26 <dbl>, dim_27 <dbl>, dim_28 <dbl>,
+#> #   dim_29 <dbl>, dim_30 <dbl>, dim_31 <dbl>, dim_32 <dbl>,
+#> #   dim_33 <dbl>, dim_34 <dbl>, dim_35 <dbl>, dim_36 <dbl>, …
+```
+
+Tutorial for SML: <https://jbgruber.github.io/rollama/articles/text-embedding.html>
+
+# Demo
+
+## What I will use here {.scrollable .smaller}
+
+:::: {.columns}
+
+::: {.column width="70%"}
+```yaml
+version: '3.6'
+
+services:
+
+  # ollama and API
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    pull_policy: missing
+    tty: true
+    restart: unless-stopped
+    # Expose Ollama API outside the container stack
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+    # GPU support (turn off by commenting with # if you don't have an nvidia gpu)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+
+  # webui, nagivate to http://localhost:3000/ to use
+  ollama-webui:
+    image: ghcr.io/ollama-webui/ollama-webui:main
+    container_name: ollama-webui
+    pull_policy: missing
+    volumes:
+      - ollama-webui:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - 3000:8080
+    environment:
+      - "OLLAMA_API_BASE_URL=http://ollama:11434/api"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+volumes:
+  ollama: {}
+  ollama-webui: {}
+```
+:::
+
+::: {.column width="30%"}
+[![](media/qr-code-gist.png)](https://gist.github.com/JBGruber/73f9f49f833c6171b8607b976abc0ddc){target="_blank"}
+
+tinyurl.com/ollama-gist
+:::
+
+::::
+
+## What I will use here {.scrollable .smaller}
+
+:::: {.columns}
+
+::: {.column width="40%"}
+![](media/rollama_hex.png)
+:::
+
+::: {.column width="40%"}
+
+
+[![](media/qr-code-rollama.png)](https://tinyurl.com/r-ollama){target="_blank"}
+
+tinyurl.com/r-ollama
+:::
+
+::::
+
+
+# Issues
+
+Methodological:
+
+- field is still an academic Wild West -- lack of established standards for the reliable, reproducible and ethical use of gLLMs (see Törnberg draft)
+- open models still lack behind proprietary ones (but not as far as we though a year ago!)
+- consistent bias (as opposed to sporadic bias with  a group of human annotators)
+
+Technical:
+
+- Small-ish hurdle to configure GPU, especially with Docker (and cost to get (NVIDIA*) GPU)
+- Replies are not consistent despite seed <https://github.com/ollama/ollama/issues/1749>
+- Mixtral is currently slow <https://github.com/ollama/ollama/issues/1556>
+- Some API parameters don't work <https://github.com/ollama/ollama/issues/1839>
+- In short: it's still work in progress (but impressive nonetheless!)
+
+# References
