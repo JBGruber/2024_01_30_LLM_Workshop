@@ -60,9 +60,8 @@ query("why is the sky blue?")
 ```
 
 ```{r}
-options(rollama_config = NULL)
+options(rollama_config = NULL, rollama_model = NULL)
 ```
-
 
 ```{r}
 query("why is the sky blue?",
@@ -75,7 +74,7 @@ query("why is the sky blue?",
         tfs_z = 0.5,
         typical_p = 0.7,
         repeat_last_n = 33,
-        temperature = 0.2,
+        temperature = 0,
         repeat_penalty = 1.2,
         presence_penalty = 1.5,
         frequency_penalty = 1.0,
@@ -83,7 +82,6 @@ query("why is the sky blue?",
         mirostat_tau = 0.8,
         mirostat_eta = 0.6,
         penalize_newline = TRUE,
-        stop = c("\n", "user:"),
         numa = FALSE,
         num_ctx = 1024,
         num_batch = 2,
@@ -134,7 +132,6 @@ create_model("mario", modelfile = modelfile)
 ```{r}
 chat("who are you?", model = "mario")
 ```
-
 
 # helping with programming
 
@@ -189,7 +186,7 @@ movie_reviews_annotated <- movie_reviews |>
       "system", "You assign texts into categories. Answer with just the correct category.",
       "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
       "assistant", "{'Category':'Negative','Confidence':'100%','Important':'terrible'}",
-      "user", glue::glue("text: {r}")
+      "user", glue::glue("text: {r}\ncategories: positive, neutral, negative")
     )
     query(q) |> 
       pluck("message", "content")
@@ -197,7 +194,6 @@ movie_reviews_annotated <- movie_reviews |>
 
 movie_reviews_annotated
 ```
-
 
 # image annotation
 
@@ -218,11 +214,10 @@ query("Excitedly desscribe this logo",
 ![](media/JBGruber.jpg)
 
 ```{r}
-query("Who do you see on this picture: a man, a woman, a student or a professor. Assign probabilities to each category", 
+query("Who do you see on this picture: a student or a professor. Assign probabilities to each category", 
       model = "llava",
       images = "media/JBGruber.jpg")
 ```
-
 
 # text embedding
 

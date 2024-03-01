@@ -1,7 +1,7 @@
 ---
 title: "O<span style='color:red;'>ll</span>a<span style='color:red;'>m</span>a"
 subtitle: "*So simple school kids can use it!*"
-author: "Johannes B. Gruber"
+author: "Johannes B. Gruber // Societal Analytics Lab"
 format: 
   revealjs:
     embed-resources: true
@@ -13,16 +13,6 @@ title-slide-attributes:
   data-background-size: "350px" 
   data-background-position: bottom -15px right -15px
 ---
-
-# Contents
-
-1. Motivation
-1. What is Ollama
-1. Why use generative Larger Language Models?
-1. Why use models locally?
-1. Usage Examples
-1. Demo
-1. Issues
 
 # Late 2022
 
@@ -287,7 +277,7 @@ answer <- query(q)
 ## Classification--Few-shot
 
 
-```r
+```{r}
 q <- tribble(
   ~role,    ~content,
   "system", "You assign texts into categories. Answer with just the correct category.",
